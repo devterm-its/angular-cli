@@ -145,9 +145,10 @@ export function getStylesConfig(wco: WebpackConfigOptions): webpack.Configuratio
   // This acts as a guard to ensure the project actually wants to use Tailwind CSS.
   // The package may be unknowningly present due to a third-party transitive package dependency.
   if (tailwindConfigPath) {
-    let tailwindPackagePath;
+    let tailwindPackagePath, tailwindNestingPackagePath;
     try {
       tailwindPackagePath = require.resolve('tailwindcss', { paths: [wco.root] });
+      tailwindNestingPackagePath = require.resolve('tailwindcss/nesting', { paths: [wco.root] });
     } catch {
       const relativeTailwindConfigPath = path.relative(wco.root, tailwindConfigPath);
       wco.logger.warn(
@@ -155,6 +156,9 @@ export function getStylesConfig(wco: WebpackConfigOptions): webpack.Configuratio
           ` but the 'tailwindcss' package is not installed.` +
           ` To enable Tailwind CSS, please install the 'tailwindcss' package.`,
       );
+    }
+    if (tailwindNestingPackagePath) {
+      extraPostcssPlugins.push(require(tailwindNestingPackagePath));
     }
     if (tailwindPackagePath) {
       if (process.env['TAILWIND_MODE'] === undefined) {
